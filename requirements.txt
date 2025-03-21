@@ -1,0 +1,10 @@
+keras
+keras-tuner
+gensim
+numpy
+pandas
+nltk
+scikit-learn
+imbalanced-learn
+tensorflow
+scipy
