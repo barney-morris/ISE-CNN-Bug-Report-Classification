@@ -1,0 +1,6 @@
+Dataset,Accuracy,Precision,Recall,F1,AUC
+caffe.csv,True,False,False,True,True
+incubator-mxnet.csv,True,True,True,True,True
+keras.csv,True,True,False,True,True
+pytorch.csv,True,True,True,True,True
+tensorflow.csv,True,True,True,True,True
