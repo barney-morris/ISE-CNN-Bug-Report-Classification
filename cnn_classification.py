@@ -43,6 +43,7 @@ stop_words = set(stopwords.words("english"))
 # Intiialise a lemmatizer
 lemmatizer = WordNetLemmatizer()
 
+datasets_directory = "datasets"
 embeddings_directory = "embeddings"
 results_directory = "results_cnn"
 
@@ -303,7 +304,7 @@ def main(
     output_sequence_length = 200
 
     # --- 6.1 Read data ---
-    df = pd.read_csv(f"datasets/{dataset}.csv")
+    df = pd.read_csv(f"{datasets_directory}/{dataset}.csv")
 
     # --- 6.1 Read data ---
 
