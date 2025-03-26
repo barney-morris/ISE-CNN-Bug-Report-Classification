@@ -80,7 +80,7 @@ def main(x_dir: str, y_dir: str, out_dir: str, level_of_significance: int) -> No
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="Statistical Tests", formatter_class = argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(prog="Statistical Test", formatter_class = argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument(
         "x_dir",

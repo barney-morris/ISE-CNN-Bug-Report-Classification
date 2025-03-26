@@ -47,11 +47,6 @@ datasets_directory = "datasets"
 embeddings_directory = "embeddings"
 results_directory = "results_cnn"
 
-WORD2VEC = "word2vec"
-PRETRAINED_GLOVE = "pretrained_glove"
-PRETRAINED_FASTTEXT = "pretrained_fasttext"
-VALID_EMBEDDINGS = [WORD2VEC, PRETRAINED_GLOVE, PRETRAINED_FASTTEXT]
-
 ########## 3. Define preprocess methods ##########
 
 
@@ -89,24 +84,6 @@ def combine_title_body(row):
 
 ########## 4. Define embedding methods ##########
 
-
-def get_word2vec_embeddings(
-    vectorizer: layers.TextVectorization,
-    sentences,
-    vocabulary_size: int,
-    embedding_dimension: int,
-):
-    word2vec = Word2Vec(sentences=sentences, vector_size=100, window=5, min_count=5)
-
-    embedding_matrix = np.zeros((vocabulary_size, embedding_dimension))
-    for index, word in enumerate(vectorizer.get_vocabulary()):
-        if index < vocabulary_size:
-            if word in word2vec.wv:
-                embedding_matrix[index] = word2vec.wv[word]
-
-    return embedding_matrix
-
-
 def embedding_matrix_from_vectorizer(
     vectorizer: layers.TextVectorization,
     embeddings: dict,
@@ -122,33 +99,6 @@ def embedding_matrix_from_vectorizer(
                 embedding_matrix[index] = embedding_vector
 
     return embedding_matrix
-
-
-def get_glove_embeddings(
-    vectorizer: layers.TextVectorization,
-    vocabulary_size: int,
-    path: str | None,
-):
-    if path is None:
-        path = "glove.6B.300d.txt"
-
-    embeddings = {}
-    with open(f"{embeddings_directory}/{path}", encoding="utf-8") as f:
-        for line in f:
-            values = line.split()
-            word = values[0]
-            vector = np.asarray(values[1:], dtype="float32")
-            embeddings[word] = vector
-
-    embedding_dimension = len(embeddings[next(iter(embeddings))])
-
-    embedding_matrix = embedding_matrix_from_vectorizer(
-        vectorizer,
-        embeddings,
-        vocabulary_size,
-        embedding_dimension,
-    )
-    return embedding_matrix, embedding_dimension
 
 
 def get_fasttext_embeddings(
@@ -294,7 +244,6 @@ def pre_tuned_model(
 ########## 6. Training and Evaluation ##########
 def main(
     dataset: str,
-    embeddings: str,
     pretrained_embedding_path: str | None,
     manual_tuned_model: bool,
     repetitions: int,
@@ -314,11 +263,10 @@ def main(
 
     df[processed_text] = df["text"].apply(pre_process)
 
-    if embeddings == "pretrained-fasttext":
-        phrases = Phrases(df[processed_text], min_count=1, threshold=1)
-        phraser = Phraser(phrases)
+    phrases = Phrases(df[processed_text], min_count=1, threshold=1)
+    phraser = Phraser(phrases)
 
-        df[processed_text].apply(lambda text: phraser[text])
+    df[processed_text].apply(lambda text: phraser[text])
 
     ########## 8. Vectorize text ##########
 
@@ -335,28 +283,13 @@ def main(
 
     ########## 8. Create embedding matrix and define embedding dimension ##########
 
-    if embeddings == WORD2VEC:
-        embedding_dimension = 100
-        embedding_matrix = get_word2vec_embeddings(
-            vectorizer,
-            df["cleaned_text"],
-            vocabulary_size,
-            embedding_dimension,
-        )
-    elif embeddings == PRETRAINED_GLOVE:
-        embedding_matrix, embedding_dimension = get_glove_embeddings(
-            vectorizer,
-            vocabulary_size,
-            pretrained_embedding_path,
-        )
-    elif embeddings == PRETRAINED_FASTTEXT:
-        embedding_matrix, embedding_dimension = get_fasttext_embeddings(
-            vectorizer,
-            vocabulary_size,
-            pretrained_embedding_path,
-        )
-    else:
-        raise Exception("No embedding specified")
+
+    embedding_matrix, embedding_dimension = get_fasttext_embeddings(
+        vectorizer,
+        vocabulary_size,
+        pretrained_embedding_path,
+    )
+
 
     accuracy_values = []
     precision_values = []
@@ -531,9 +464,6 @@ def main(
 
     print("=== Model Information ===")
     print(f"Embedding Dimension: {embedding_dimension}")
-    print(
-        f"Embeddings: {embeddings}",
-    )
 
     if best_hps is not None:
         print("\nConv Layers")
@@ -577,19 +507,14 @@ if __name__ == "__main__":
         action="store_true",
         help="Overwrite, and (re)run Hyperband to search for optimal hyperparameters (not recommended)",
     )
-    parser.add_argument('--embeddings',
-                        default="pretrained_fasttext",
-                        choices=VALID_EMBEDDINGS,
-                        help="Chose an embedding")
 
 
     args = parser.parse_args()
 
     main(
         dataset=args.dataset,
-        embeddings=args.embeddings,
         pretrained_embedding_path=args.pretrained_embedding_path,
         manual_tuned_model=args.manual_tuned_model,
         repetitions=args.repetitions,
-        generate_hyperparameters=args.generate_hyperparameters,
+        generate_hyperparameters=args.generate_hyperparameters
     )
