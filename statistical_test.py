@@ -95,4 +95,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.x_dir, args.y_dir, args.out_dir, args.level_of_significane)
+    main(args.x_dir, args.y_dir, args.out_dir, args.level_of_significance)
