@@ -6,7 +6,6 @@ import re
 import numpy as np
 import pandas as pd
 from gensim.models import Phrases
-from gensim.models import Word2Vec
 from gensim.models.phrases import Phraser
 from imblearn.keras import BalancedBatchGenerator
 from imblearn.under_sampling import NearMiss
